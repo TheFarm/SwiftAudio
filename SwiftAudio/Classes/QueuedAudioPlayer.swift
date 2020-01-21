@@ -118,7 +118,7 @@ public class QueuedAudioPlayer: AudioPlayer {
      
      - throws: `APError`
      */
-    public func next() throws {
+    public func next(playWhenReady: Bool = true) throws {
         event.playbackEnd.emit(data: (
             reason: .skippedToNext,
             currentItem: self.currentItem,
@@ -126,13 +126,13 @@ public class QueuedAudioPlayer: AudioPlayer {
             nextItem: self.nextItems.first
         ))
         let nextItem = try queueManager.next()
-        try self.load(item: nextItem, playWhenReady: true)
+        try self.load(item: nextItem, playWhenReady: playWhenReady)
     }
     
     /**
      Step to the previous item in the queue.
      */
-    public func previous() throws {
+    public func previous(playWhenReady: Bool = true) throws {
         event.playbackEnd.emit(data: (
             reason: .skippedToPrevious,
             currentItem: self.currentItem,
@@ -140,7 +140,7 @@ public class QueuedAudioPlayer: AudioPlayer {
             nextItem: self.nextItems.first
         ))
         let previousItem = try queueManager.previous()
-        try self.load(item: previousItem, playWhenReady: true)
+        try self.load(item: previousItem, playWhenReady: playWhenReady)
     }
     
     /**
