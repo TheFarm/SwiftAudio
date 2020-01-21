@@ -10,7 +10,7 @@ import Foundation
 extension AudioPlayer {
     
     public typealias StateChangeEventData = (AudioPlayerState)
-    public typealias PlaybackEndEventData = (PlaybackEndedReason)
+    public typealias PlaybackEndEventData = (reason: PlaybackEndedReason, currentItem: AudioItem?, currentTime: TimeInterval, nextItem: AudioItem?)
     public typealias SecondElapseEventData = (TimeInterval)
     public typealias FailEventData = (Error?)
     public typealias SeekEventData = (seconds: Int, didFinish: Bool)

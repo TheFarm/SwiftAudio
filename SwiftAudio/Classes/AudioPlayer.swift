@@ -199,7 +199,12 @@ public class AudioPlayer: AVPlayerWrapperDelegate {
     public func stop() {
         self.reset()
         self.wrapper.stop()
-        self.event.playbackEnd.emit(data: .playerStopped)
+        self.event.playbackEnd.emit(data: (
+            reason: .playerStopped,
+            currentItem: self.currentItem,
+            currentTime: self.currentTime,
+            nextItem: nil
+        ))
     }
     
     /**
@@ -344,7 +349,12 @@ public class AudioPlayer: AVPlayerWrapperDelegate {
     }
     
     func AVWrapperItemDidPlayToEndTime() {
-        self.event.playbackEnd.emit(data: .playedUntilEnd)
+        self.event.playbackEnd.emit(data: (
+            reason: .playedUntilEnd,
+            currentItem: self.currentItem,
+            currentTime: self.currentTime,
+            nextItem: nil
+        ))
     }
     
     func AVWrapperDidRecreateAVPlayer() {
