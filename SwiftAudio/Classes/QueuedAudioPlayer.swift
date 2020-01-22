@@ -35,6 +35,23 @@ public class QueuedAudioPlayer: AudioPlayer {
     }
     
     /**
+     The next item if any.
+     */
+    public var nextItem: AudioItem? {
+        switch repeatMode {
+        case .none:
+            return nextItems.first
+        case .track:
+            return currentItem
+        case .queue:
+            if nextItems.isEmpty {
+                return items.first
+            }
+            return nextItems.first
+        }
+    }
+    
+    /**
      The index of the current item.
      */
     public var currentIndex: Int {
@@ -130,7 +147,7 @@ public class QueuedAudioPlayer: AudioPlayer {
             reason: .skippedToNext,
             currentItem: self.currentItem,
             currentTime: self.currentTime,
-            nextItem: self.nextItems.first
+            nextItem: self.nextItem
         ))
         
         var nextItem: AudioItem!
@@ -212,21 +229,11 @@ public class QueuedAudioPlayer: AudioPlayer {
     // MARK: - AVPlayerWrapperDelegate
     
     override func AVWrapperItemDidPlayToEndTime() {
-        var nextItem: AudioItem?
-        switch repeatMode {
-        case .track:
-            nextItem = self.currentItem
-        case .queue:
-            nextItem = self.nextItems.first
-        case .none:
-            nextItem = nil
-        }
-
         self.event.playbackEnd.emit(data: (
             reason: .playedUntilEnd,
             currentItem: self.currentItem,
             currentTime: self.currentTime,
-            nextItem: nextItem
+            nextItem: self.nextItem
         ))
 
         if repeatMode != .track && automaticallyLoadNextSong {
