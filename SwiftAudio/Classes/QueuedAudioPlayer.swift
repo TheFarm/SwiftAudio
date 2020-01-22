@@ -169,10 +169,10 @@ public class QueuedAudioPlayer: AudioPlayer {
         ))
         
         var nextItem: AudioItem!
-        if repeatMode != .none {
-            nextItem = try queueManager.nextRepeated()
-        } else {
+        if repeatMode == .none {
             nextItem = try queueManager.next()
+        } else {
+            nextItem = try queueManager.nextLooped()
         }
 
         try self.load(item: nextItem, playWhenReady: automaticallyPlayWhenReady)
@@ -186,9 +186,15 @@ public class QueuedAudioPlayer: AudioPlayer {
             reason: .skippedToPrevious,
             currentItem: self.currentItem,
             currentTime: self.currentTime,
-            nextItem: self.nextItems.first
+            nextItem: self.previousItem
         ))
-        let previousItem = try queueManager.previous()
+        var previousItem: AudioItem!
+        if repeatMode == .none {
+            previousItem = try queueManager.previous()
+        } else {
+            previousItem = try queueManager.previousLooped()
+        }
+        
         try self.load(item: previousItem, playWhenReady: automaticallyPlayWhenReady)
     }
     

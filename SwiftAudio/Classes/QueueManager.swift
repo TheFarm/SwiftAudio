@@ -121,6 +121,27 @@ class QueueManager<T> {
     }
     
     /**
+     Get the previous item in the queue, if there are any. Wraps around the queue.
+     Will update the current item.
+
+     - throws: `APError.QueueError`
+     - returns: The previous item.
+     */
+    @discardableResult
+    public func previousLooped() throws -> T {
+        guard !_items.isEmpty else {
+            throw APError.QueueError.noPreviousItem
+        }
+        
+        var previousIndex = _currentIndex - 1
+        if previousIndex < 0 {
+            previousIndex = _items.count - 1
+        }
+        _currentIndex = previousIndex
+        return _items[previousIndex]
+    }
+    
+    /**
      Restarts the queue from the beginning if there are no next items after current item.
      Will update the current item.
      
@@ -128,7 +149,7 @@ class QueueManager<T> {
      - returns: The next item.
      */
     @discardableResult
-    public func nextRepeated() throws -> T {
+    public func nextLooped() throws -> T {
         guard !_items.isEmpty else {
             throw APError.QueueError.noNextItem
         }
