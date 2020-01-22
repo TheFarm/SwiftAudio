@@ -52,6 +52,24 @@ public class QueuedAudioPlayer: AudioPlayer {
     }
     
     /**
+     The previous item if any.
+     */
+    public var previousItem: AudioItem? {
+        switch repeatMode {
+        case .none:
+            return previousItems.last
+        case .track:
+            return currentItem
+        case .queue:
+            if previousItems.isEmpty {
+                return nextItems.last
+            }
+            return previousItems.last
+        }
+    }
+    
+    
+    /**
      The index of the current item.
      */
     public var currentIndex: Int {
