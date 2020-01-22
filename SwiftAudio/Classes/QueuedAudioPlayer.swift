@@ -16,11 +16,20 @@ public class QueuedAudioPlayer: AudioPlayer {
     let queueManager: QueueManager = QueueManager<AudioItem>()
     
     /**
-     Set wether the player should automatically play the next song when a song is finished.
+     Set wether the player should automatically load the next track when a song is finished.
      Default is `true`.
      */
-    public var automaticallyPlayNextSong: Bool = true
+    public var automaticallyLoadNextSong: Bool = true
     
+    /**
+     Sets wether the player should automatically play the track when loaded.
+     Default is `true`
+     */
+    public var automaticallyPlayWhenReady: Bool = true
+    
+    /**
+     The current item if any.
+     */
     public override var currentItem: AudioItem? {
         return queueManager.current
     }
@@ -32,13 +41,9 @@ public class QueuedAudioPlayer: AudioPlayer {
         return queueManager.currentIndex
     }
     
-     /**
-     Stops the player and clears the queue.
+    /**
+     Clears the queue
      */
-    public override func stop() {
-        super.stop()
-    }
-    
     override func reset() {
         queueManager.clearQueue()
     }
@@ -68,6 +73,7 @@ public class QueuedAudioPlayer: AudioPlayer {
      Will replace the current item with a new one and load it into the player.
      
      - parameter item: The AudioItem to replace the current item.
+     - parameter playWhenReady: If this is `true` it will automatically start playback.
      - throws: APError.LoadError
      */
     public override func load(item: AudioItem, playWhenReady: Bool) throws {
@@ -79,13 +85,12 @@ public class QueuedAudioPlayer: AudioPlayer {
      Add a single item to the queue.
      
      - parameter item: The item to add.
-     - parameter playWhenReady: If the AudioPlayer has no item loaded, it will load the `item`. If this is `true` it will automatically start playback. Default is `true`.
      - throws: `APError`
      */
-    public func add(item: AudioItem, playWhenReady: Bool = true) throws {
+    public func add(item: AudioItem) throws {
         if currentItem == nil {
             queueManager.addItem(item)
-            try self.load(item: item, playWhenReady: playWhenReady)
+            try self.load(item: item, playWhenReady: automaticallyPlayWhenReady)
         }
         else {
             queueManager.addItem(item)
@@ -96,13 +101,15 @@ public class QueuedAudioPlayer: AudioPlayer {
      Add items to the queue.
      
      - parameter items: The items to add to the queue.
-     - parameter playWhenReady: If the AudioPlayer has no item loaded, it will load the first item in the list. If this is `true` it will automatically start playback. Default is `true`.
      - throws: `APError`
      */
-    public func add(items: [AudioItem], playWhenReady: Bool = true) throws {
+    public func add(items: [AudioItem]) throws {
         if currentItem == nil {
             queueManager.addItems(items)
-            try self.load(item: currentItem!, playWhenReady: playWhenReady)
+            
+            if let currentItem = self.currentItem {
+                try self.load(item: currentItem, playWhenReady: automaticallyPlayWhenReady)
+            }
         }
         else {
             queueManager.addItems(items)
@@ -118,21 +125,28 @@ public class QueuedAudioPlayer: AudioPlayer {
      
      - throws: `APError`
      */
-    public func next(playWhenReady: Bool = true) throws {
+    public func next() throws {
         event.playbackEnd.emit(data: (
             reason: .skippedToNext,
             currentItem: self.currentItem,
             currentTime: self.currentTime,
             nextItem: self.nextItems.first
         ))
-        let nextItem = try queueManager.next()
-        try self.load(item: nextItem, playWhenReady: playWhenReady)
+        
+        var nextItem: AudioItem!
+        if repeatMode != .none {
+            nextItem = try queueManager.nextRepeated()
+        } else {
+            nextItem = try queueManager.next()
+        }
+
+        try self.load(item: nextItem, playWhenReady: automaticallyPlayWhenReady)
     }
     
     /**
      Step to the previous item in the queue.
      */
-    public func previous(playWhenReady: Bool = true) throws {
+    public func previous() throws {
         event.playbackEnd.emit(data: (
             reason: .skippedToPrevious,
             currentItem: self.currentItem,
@@ -140,7 +154,7 @@ public class QueuedAudioPlayer: AudioPlayer {
             nextItem: self.nextItems.first
         ))
         let previousItem = try queueManager.previous()
-        try self.load(item: previousItem, playWhenReady: playWhenReady)
+        try self.load(item: previousItem, playWhenReady: automaticallyPlayWhenReady)
     }
     
     /**
@@ -157,10 +171,9 @@ public class QueuedAudioPlayer: AudioPlayer {
      Jump to a certain item in the queue.
      
      - parameter index: The index of the item to jump to.
-     - parameter playWhenReady: Wether the item should start playing when ready. Default is `true`.
      - throws: `APError`
      */
-    public func jumpToItem(atIndex index: Int, playWhenReady: Bool = true) throws {
+    public func jumpToItem(atIndex index: Int) throws {
         event.playbackEnd.emit(data: (
             reason: .jumpedToIndex,
             currentItem: self.currentItem,
@@ -168,7 +181,7 @@ public class QueuedAudioPlayer: AudioPlayer {
             nextItem: self.nextItems.first
         ))
         let item = try queueManager.jump(to: index)
-        try self.load(item: item, playWhenReady: playWhenReady)
+        try self.load(item: item, playWhenReady: automaticallyPlayWhenReady)
     }
     
     /**
@@ -199,9 +212,28 @@ public class QueuedAudioPlayer: AudioPlayer {
     // MARK: - AVPlayerWrapperDelegate
     
     override func AVWrapperItemDidPlayToEndTime() {
-        super.AVWrapperItemDidPlayToEndTime()
-        if automaticallyPlayNextSong {
+        var nextItem: AudioItem?
+        switch repeatMode {
+        case .track:
+            nextItem = self.currentItem
+        case .queue:
+            nextItem = self.nextItems.first
+        case .none:
+            nextItem = nil
+        }
+
+        self.event.playbackEnd.emit(data: (
+            reason: .playedUntilEnd,
+            currentItem: self.currentItem,
+            currentTime: self.currentTime,
+            nextItem: nextItem
+        ))
+
+        if repeatMode != .track && automaticallyLoadNextSong {
             try? self.next()
+        } else if repeatMode == .track {
+            wrapper.seek(to: 0)
+            automaticallyPlayWhenReady ? self.play() : self.pause()
         }
     }
     

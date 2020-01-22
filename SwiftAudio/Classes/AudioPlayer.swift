@@ -10,6 +10,21 @@ import MediaPlayer
 
 public typealias AudioPlayerState = AVPlayerWrapperState
 
+/**
+ The repeat mode of currently playing track
+ */
+public enum AudioPlayerRepeatMode: String {
+
+    /// No repeat, will stop playing when the track is ended
+    case none
+
+    /// Repeats the current queue(or item) indefinitely
+    case queue
+    
+    /// Repeats the current item indefinitely
+    case track
+}
+
 public class AudioPlayer: AVPlayerWrapperDelegate {
     
     private var _wrapper: AVPlayerWrapperProtocol
@@ -27,6 +42,11 @@ public class AudioPlayer: AVPlayerWrapperDelegate {
     public var currentItem: AudioItem? {
         return _currentItem
     }
+    
+    /**
+     Set the repeat mode of current track or queue
+     */
+    public var repeatMode: AudioPlayerRepeatMode = .none
     
     /**
      Set this to false to disable automatic updating of now playing info for control center and lock screen.
@@ -353,8 +373,12 @@ public class AudioPlayer: AVPlayerWrapperDelegate {
             reason: .playedUntilEnd,
             currentItem: self.currentItem,
             currentTime: self.currentTime,
-            nextItem: nil
+            nextItem: self.repeatMode != .none ? self.currentItem : nil
         ))
+        
+        if self.repeatMode != .none {
+            self.wrapper.seek(to: 0)
+        }
     }
     
     func AVWrapperDidRecreateAVPlayer() {

@@ -169,6 +169,10 @@ public class RemoteCommandController {
     private func handleNextTrackCommandDefault(event: MPRemoteCommandEvent) -> MPRemoteCommandHandlerStatus {
         if let player = self.audioPlayer as? QueuedAudioPlayer {
             do {
+                // Downgrade repeat mode to queue if the user decides to skip a repeated track
+                if player.repeatMode == .track {
+                    player.repeatMode = .queue
+                }
                 try player.next()
                 return MPRemoteCommandHandlerStatus.success
             }
@@ -182,6 +186,10 @@ public class RemoteCommandController {
     private func handlePreviousTrackCommandDefault(event: MPRemoteCommandEvent) -> MPRemoteCommandHandlerStatus {
         if let player = self.audioPlayer as? QueuedAudioPlayer {
             do {
+                // Downgrade repeat mode to queue if the user decides to skip a repeated track
+                if player.repeatMode == .track {
+                    player.repeatMode = .queue
+                }
                 try player.previous()
                 return MPRemoteCommandHandlerStatus.success
             }

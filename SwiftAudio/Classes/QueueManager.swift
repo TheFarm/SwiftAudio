@@ -121,6 +121,27 @@ class QueueManager<T> {
     }
     
     /**
+     Restarts the queue from the beginning if there are no next items after current item.
+     Will update the current item.
+     
+     - throws: APError.QueueError.noNextItem
+     - returns: The next item.
+     */
+    @discardableResult
+    public func nextRepeated() throws -> T {
+        guard !_items.isEmpty else {
+            throw APError.QueueError.noNextItem
+        }
+
+        var nextItem = _currentIndex + 1
+        if nextItem >= _items.count {
+            nextItem = 0
+        }
+        _currentIndex = nextItem
+        return _items[nextItem]
+    }
+    
+    /**
      Jump to a position in the queue.
      Will update the current item.
      
