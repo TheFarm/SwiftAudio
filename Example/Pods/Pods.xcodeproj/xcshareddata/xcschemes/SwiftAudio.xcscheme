@@ -14,7 +14,7 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "1AB61EB02FDF0033DCB1F8416419F110"
+               BlueprintIdentifier = "9EFB4332012106BFF0FE37F9EC74918F"
                BuildableName = "SwiftAudio.framework"
                BlueprintName = "SwiftAudio"
                ReferencedContainer = "container:Pods.xcodeproj">
@@ -29,8 +29,6 @@
       shouldUseLaunchSchemeArgsEnv = "YES">
       <Testables>
       </Testables>
-      <AdditionalOptions>
-      </AdditionalOptions>
    </TestAction>
    <LaunchAction
       buildConfiguration = "Debug"
@@ -45,14 +43,12 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "1AB61EB02FDF0033DCB1F8416419F110"
+            BlueprintIdentifier = "9EFB4332012106BFF0FE37F9EC74918F"
             BuildableName = "SwiftAudio.framework"
             BlueprintName = "SwiftAudio"
             ReferencedContainer = "container:Pods.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
-      <AdditionalOptions>
-      </AdditionalOptions>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"

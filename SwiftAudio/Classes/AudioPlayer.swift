@@ -23,6 +23,18 @@ public enum AudioPlayerRepeatMode: String {
     
     /// Repeats the current item indefinitely
     case track
+    
+    /// Converts from AudioPlayerRepeatMode to MPRepeatType.
+    var mpType: MPRepeatType {
+        switch self {
+        case .none:
+            return .off
+        case .queue:
+            return .all
+        case .track:
+            return .one
+        }
+    }
 }
 
 public class AudioPlayer: AVPlayerWrapperDelegate {
@@ -96,6 +108,31 @@ public class AudioPlayer: AVPlayerWrapperDelegate {
     }
     
     // MARK: - Setters for AVPlayerWrapper
+    
+    /**
+     Adjusts the precision when seeking, a smaller value than the standard CMTime.positiveInfinity will incur a
+     performance penalty (e.g seeking may be delayed because of decoding delay).
+     
+     Set to CMTime.zero for sample accurate seeking
+     */
+    public var seekToleranceBefore: CMTime {
+        get { return wrapper.seekToleranceBefore }
+        set { _wrapper.seekToleranceBefore = newValue }
+    }
+    
+    /**
+     Same as seekToleranceBefore.
+     
+     The time seeked to will be within the range [time-beforeTolerance, time+afterTolerance],
+     and may differ from the specified time for efficiency.
+     
+     [Read more from Apple Documentation](https://developer.apple.com/documentation/avfoundation/avplayer/1387741-seek)
+     [A good explanation on why seeking is inaccurate in some MP3 files](https://exoplayer.dev/troubleshooting.html#why-is-seeking-inaccurate-in-some-mp3-files)
+     */
+    public var seekToleranceAfter: CMTime {
+        get { return wrapper.seekToleranceAfter }
+        set { _wrapper.seekToleranceAfter = newValue }
+    }
     
     /**
      The amount of seconds to be buffered by the player. Default value is 0 seconds, this means the AVPlayer will choose an appropriate level of buffering.
@@ -357,7 +394,7 @@ public class AudioPlayer: AVPlayerWrapperDelegate {
         self.event.fail.emit(data: error)
     }
     
-    func AVWrapper(seekTo seconds: Int, didFinish: Bool) {
+    func AVWrapper(seekTo seconds: Double, didFinish: Bool) {
         if !didFinish && automaticallyUpdateNowPlayingInfo {
             updateNowPlayingCurrentTime(currentTime)
         }

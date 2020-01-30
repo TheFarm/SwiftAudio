@@ -103,6 +103,23 @@ public struct FeedbackCommand: RemoteCommandProtocol {
     }
 }
 
+public struct ChangeRepeatModeCommand: RemoteCommandProtocol {
+    public var id: String
+    
+    public var commandKeyPath: KeyPath<MPRemoteCommandCenter, MPChangeRepeatModeCommand>
+    
+    public var handlerKeyPath: KeyPath<RemoteCommandController, RemoteCommandHandler>
+    
+    public typealias Command = MPChangeRepeatModeCommand
+    
+    public static let changeRepeatMode = ChangeRepeatModeCommand(id: "ChangeRepeatMode", commandKeyPath: \MPRemoteCommandCenter.changeRepeatModeCommand, handlerKeyPath: \RemoteCommandController.handleChangeRepeatModeCommand)
+    
+    func set(mode: AudioPlayerRepeatMode) -> ChangeRepeatModeCommand {
+        MPRemoteCommandCenter.shared()[keyPath: commandKeyPath].currentRepeatType = mode.mpType
+        return self
+    }
+}
+
 public enum RemoteCommand {
 
     case play
@@ -118,6 +135,8 @@ public enum RemoteCommand {
     case previous
     
     case changePlaybackPosition
+    
+    case changeRepeatMode(mode: AudioPlayerRepeatMode)
     
     case skipForward(preferredIntervals: [NSNumber])
     
@@ -142,6 +161,7 @@ public enum RemoteCommand {
             .next,
             .previous,
             .changePlaybackPosition,
+            .changeRepeatMode(mode: .none),
             .skipForward(preferredIntervals: []),
             .skipBackward(preferredIntervals: []),
             .like(isActive: false, localizedTitle: "", localizedShortTitle: ""),

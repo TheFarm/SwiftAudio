@@ -13,7 +13,7 @@ extension AudioPlayer {
     public typealias PlaybackEndEventData = (reason: PlaybackEndedReason, currentItem: AudioItem?, currentTime: TimeInterval, nextItem: AudioItem?)
     public typealias SecondElapseEventData = (TimeInterval)
     public typealias FailEventData = (Error?)
-    public typealias SeekEventData = (seconds: Int, didFinish: Bool)
+    public typealias SeekEventData = (seconds: Double, didFinish: Bool)
     public typealias UpdateDurationEventData = (Double)
     public typealias DidRecreateAVPlayerEventData = ()
     

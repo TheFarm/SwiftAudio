@@ -23,6 +23,9 @@ protocol AVPlayerWrapperProtocol: class {
     
     var reasonForWaitingToPlay: AVPlayer.WaitingReason? { get }
     
+    var seekToleranceBefore: CMTime { get set }
+    
+    var seekToleranceAfter: CMTime { get set }
     
     var rate: Float { get set }
     
@@ -48,6 +51,8 @@ protocol AVPlayerWrapperProtocol: class {
     func stop()
     
     func seek(to seconds: TimeInterval)
+    
+    func seek(to seconds: TimeInterval, toleranceBefore: CMTime, toleranceAfter: CMTime)
     
     func load(from url: URL, playWhenReady: Bool, options: [String: Any]?)
     

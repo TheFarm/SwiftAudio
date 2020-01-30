@@ -62,6 +62,7 @@ public class RemoteCommandController {
         case .next: self.enableCommand(PlayBackCommand.nextTrack)
         case .previous: self.enableCommand(PlayBackCommand.previousTrack)
         case .changePlaybackPosition: self.enableCommand(ChangePlaybackPositionCommand.changePlaybackPosition)
+        case .changeRepeatMode(let mode): self.enableCommand(ChangeRepeatModeCommand.changeRepeatMode.set(mode: mode))
         case .skipForward(let preferredIntervals): self.enableCommand(SkipIntervalCommand.skipForward.set(preferredIntervals: preferredIntervals))
         case .skipBackward(let preferredIntervals): self.enableCommand(SkipIntervalCommand.skipBackward.set(preferredIntervals: preferredIntervals))
         case .like(let isActive, let localizedTitle, let localizedShortTitle):
@@ -82,11 +83,12 @@ public class RemoteCommandController {
         case .next: self.disableCommand(PlayBackCommand.nextTrack)
         case .previous: self.disableCommand(PlayBackCommand.previousTrack)
         case .changePlaybackPosition: self.disableCommand(ChangePlaybackPositionCommand.changePlaybackPosition)
-        case .skipForward(_): self.disableCommand(SkipIntervalCommand.skipForward)
-        case .skipBackward(_): self.disableCommand(SkipIntervalCommand.skipBackward)
-        case .like(_, _, _): self.disableCommand(FeedbackCommand.like)
-        case .dislike(_, _, _): self.disableCommand(FeedbackCommand.dislike)
-        case .bookmark(_, _, _): self.disableCommand(FeedbackCommand.bookmark)
+        case .changeRepeatMode: self.disableCommand(ChangeRepeatModeCommand.changeRepeatMode)
+        case .skipForward: self.disableCommand(SkipIntervalCommand.skipForward)
+        case .skipBackward: self.disableCommand(SkipIntervalCommand.skipBackward)
+        case .like: self.disableCommand(FeedbackCommand.like)
+        case .dislike: self.disableCommand(FeedbackCommand.dislike)
+        case .bookmark: self.disableCommand(FeedbackCommand.bookmark)
         }
     }
     
@@ -104,6 +106,7 @@ public class RemoteCommandController {
     public lazy var handleLikeCommand: RemoteCommandHandler = self.handleLikeCommandDefault
     public lazy var handleDislikeCommand: RemoteCommandHandler = self.handleDislikeCommandDefault
     public lazy var handleBookmarkCommand: RemoteCommandHandler = self.handleBookmarkCommandDefault
+    public lazy var handleChangeRepeatModeCommand: RemoteCommandHandler = self.handleChangeRepeatModeCommandDefault
     
     private func handlePlayCommandDefault(event: MPRemoteCommandEvent) -> MPRemoteCommandHandlerStatus {
         if let audioPlayer = self.audioPlayer {
@@ -199,6 +202,22 @@ public class RemoteCommandController {
         }
         return MPRemoteCommandHandlerStatus.commandFailed
     }
+
+    private func handleChangeRepeatModeCommandDefault(event: MPRemoteCommandEvent) -> MPRemoteCommandHandlerStatus {
+        if let player = self.audioPlayer as? QueuedAudioPlayer {
+            switch player.repeatMode {
+            case .none:
+                player.repeatMode = .queue
+            case .queue:
+                player.repeatMode = .track
+            default:
+                player.repeatMode = .none
+            }
+            return MPRemoteCommandHandlerStatus.success
+        }
+        return MPRemoteCommandHandlerStatus.commandFailed
+    }
+
     
     private func handleLikeCommandDefault(event: MPRemoteCommandEvent) -> MPRemoteCommandHandlerStatus {
         return MPRemoteCommandHandlerStatus.success
@@ -215,13 +234,13 @@ public class RemoteCommandController {
     private func getRemoteCommandHandlerStatus(forError error: Error) -> MPRemoteCommandHandlerStatus {
         if let error = error as? APError.LoadError {
             switch error {
-            case .invalidSourceUrl(_):
+            case .invalidSourceUrl:
                 return MPRemoteCommandHandlerStatus.commandFailed
             }
         }
         else if let error = error as? APError.QueueError {
             switch error {
-            case .noNextItem, .noPreviousItem, .invalidIndex(_, _):
+            case .noNextItem, .noPreviousItem, .invalidIndex:
                 return MPRemoteCommandHandlerStatus.noSuchContent
             }
         }

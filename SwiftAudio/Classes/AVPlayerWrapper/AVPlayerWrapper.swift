@@ -31,7 +31,9 @@ class AVPlayerWrapper: AVPlayerWrapperProtocol {
     let playerTimeObserver: AVPlayerTimeObserver
     let playerItemNotificationObserver: AVPlayerItemNotificationObserver
     let playerItemObserver: AVPlayerItemObserver
-    
+    var seekToleranceBefore: CMTime
+    var seekToleranceAfter: CMTime
+
     /**
      True if the last call to load(from:playWhenReady) had playWhenReady=true.
      */
@@ -54,6 +56,8 @@ class AVPlayerWrapper: AVPlayerWrapperProtocol {
         self.playerTimeObserver.player = avPlayer
         self.playerItemNotificationObserver = AVPlayerItemNotificationObserver()
         self.playerItemObserver = AVPlayerItemObserver()
+        self.seekToleranceBefore = .positiveInfinity
+        self.seekToleranceAfter = .positiveInfinity
         
         self.playerObserver.delegate = self
         self.playerTimeObserver.delegate = self
@@ -157,14 +161,21 @@ class AVPlayerWrapper: AVPlayerWrapperProtocol {
     }
     
     func seek(to seconds: TimeInterval) {
-        avPlayer.seek(to: CMTimeMakeWithSeconds(seconds, preferredTimescale: 1000)) { (finished) in
+        seek(to: seconds, toleranceBefore: seekToleranceBefore, toleranceAfter: seekToleranceAfter)
+    }
+    
+    func seek(to seconds: TimeInterval, toleranceBefore: CMTime, toleranceAfter: CMTime) {
+        let cmSeconds = CMTimeMakeWithSeconds(seconds, preferredTimescale: 1000)
+        avPlayer.seek(to: cmSeconds, toleranceBefore: toleranceBefore, toleranceAfter: toleranceAfter) { [weak self] (finished) in
+            guard let self = self else { return }
+            
             if let _ = self._initialTime {
                 self._initialTime = nil
                 if self._playWhenReady {
                     self.play()
                 }
             }
-            self.delegate?.AVWrapper(seekTo: Int(seconds), didFinish: finished)
+            self.delegate?.AVWrapper(seekTo: seconds, didFinish: finished)
         }
     }
     
