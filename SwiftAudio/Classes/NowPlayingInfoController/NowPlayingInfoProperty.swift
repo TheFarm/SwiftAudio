@@ -180,7 +180,6 @@ public enum NowPlayingInfoProperty: NowPlayingInfoKeyValue {
             } else {
                 return ""
             }
-            
         }
     }
     

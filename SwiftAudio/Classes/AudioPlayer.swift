@@ -273,6 +273,16 @@ public class AudioPlayer: AVPlayerWrapperDelegate {
         }
         self.wrapper.seek(to: seconds)
     }
+
+    /**
+     Seek to a specific time in the item with specific tolerance.
+     */
+    public func seek(to seconds: TimeInterval, toleranceBefore: CMTime, toleranceAfter: CMTime) {
+        if automaticallyUpdateNowPlayingInfo {
+            self.updateNowPlayingCurrentTime(seconds)
+        }
+        self.wrapper.seek(to: seconds, toleranceBefore: toleranceBefore, toleranceAfter: toleranceAfter)
+    }
     
     // MARK: - Remote Command Center
     
